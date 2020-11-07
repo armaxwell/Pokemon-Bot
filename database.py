@@ -2,43 +2,37 @@ import discord
 from discord.ext import commands
 import sqlite3
 import asyncio
-import database
+import random
 import embed
 
-client = commands.Bot(command_prefix = '.')
+async def wild_db(ctx):
+    # Chooses a random index between 1 to 151
+    numID = random.randint(1, 152)
 
-pkmnName = ''
+    # Connect to the Pokemon database
+    conn = sqlite3.connect('Pokemon.db')
+    c = conn.cursor()
+    c.execute('''SELECT ID, NAME, IMAGES
+    FROM INFO
+    WHERE ID = ?''', (numID,))
+    res = c.fetchone()                      # Returns a tuple
+    c.close()
 
-# Message to know that the bot is ready
-@client.event
-async def on_ready():
-    print('Bot is ready!')
+    # Create the embed for the randomly generator Pokemon
+    name = res[1]
+    image = res[2]
+    print('No. ' + str(res[0]) + ':')       # Prints the entry number in terminal
+    if (res[0] == numID):
+        await embed.wild_embed(ctx, image)
+        return name
 
-# Wild encounter
-@client.command()
-async def wild(ctx):
-    global pkmnName
-    pkmnName = await database.wild_db(ctx)      # Name is returned and stored in the global variable
-    print(pkmnName + ' is the answer.')
-
-# Catching mechanic
-@client.command()
-async def catch(ctx, arg):
-    global pkmnName
-
-    # Check is the input matches the Pokemon name
-    if (pkmnName. title() == arg.title()):
-        await ctx.send('Congratulations! You caught a {}!'.format(pkmnName))
-        print('Caught')
-        pkmnName = ''                           # Reset the global variable
-
-# Pokedex command
-@client.command()
-async def pokedex(ctx, arg):
-    data = await database.dex_db(arg)
-    print(data)
-    await embed.dex_embed(ctx, data)
-    
-
-# Bot token
-client.run('token')
+async def dex_db(name):
+    # Connect to the Pokemon database
+    conn = sqlite3.connect('Pokemon.db')
+    c = conn.cursor()
+    c.execute('''SELECT *
+    FROM INFO
+    WHERE NAME = ?''', (name.title(),))
+    res = c.fetchone()
+    c.close()
+    return res
