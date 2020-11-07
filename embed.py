@@ -9,6 +9,8 @@ async def wild_embed(ctx, image):
         description = 'Catch it!',
         color = 0xff0000
     )
+
+    # All image files in the local directory are PNG
     image = image + '.png'
     filename = discord.File('PKMNImages/' + image, filename=image)
     embed.set_image(url='attachment://' + image)
@@ -22,12 +24,16 @@ async def dex_embed(ctx, info):
     name = info[1]
     height = str(float(info[2]) / 10)
     weight = str(float(info[3]) / 10)
+    ctgry = info[5]
 
+    # Initializes the embed
     embed = discord.Embed(
         title = 'No. {}: {}'.format(num, name),
+        description = 'The {} Pokemon'.format(ctgry),
         color = 0xff0000
     )
 
+    # Seeting additional fields to the current embed
     embed.add_field(name = 'Height', value = height + ' m')
     embed.add_field(name = 'Weight', value = weight + ' kg')
     image = info[4] + '.png'
