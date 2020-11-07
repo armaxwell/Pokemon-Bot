@@ -2,36 +2,43 @@ import discord
 from discord.ext import commands
 import sqlite3
 import asyncio
-import random
+import database
 import embed
 
-async def wild_db():
-    # Connect to the Pokemon database
-    conn = sqlite3.connect('Pokemon.db')
-    c = conn.cursor()
-    c.execute('''SELECT ID, NAME, IMAGES
-    FROM INFO''')
-    res = c.fetchall()                         # Returns a list of tuples i.e. data[list_num][tuple_num]
-    c.close()
-    return res                                 # Tuple data output
+client = commands.Bot(command_prefix = '.')
 
-async def randPkmn(ctx, data):
-    # Chooses a random index between 0 to 150 for entries 1 to 151
-    idx = random.randint(0, 151)
-    name = data[idx][1]
-    image = data [idx][2]                       # Retrieves the name of the image file
-    print('No. ' + str(data[idx][0]) + ':')     # Prints the entry number
-    if (data[idx][0] == (idx + 1)):
-        await embed.wild_embed(ctx, image)
-        return name
+pkmnName = ''
 
-async def dex_db(name):
-    # Connect to the Pokemon database
-    conn = sqlite3.connect('Pokemon.db')
-    c = conn.cursor()
-    c.execute('''SELECT ID, NAME, HEIGHT, WEIGHT, IMAGES
-    FROM INFO
-    WHERE NAME = ?''', (name.title(),))
-    res = c.fetchone()
-    c.close()
-    return res
+# Message to know that the bot is ready
+@client.event
+async def on_ready():
+    print('Bot is ready!')
+
+# Wild encounter
+@client.command()
+async def wild(ctx):
+    global pkmnName
+    pkmnName = await database.wild_db(ctx)      # Name is returned and stored in the global variable
+    print(pkmnName + ' is the answer.')
+
+# Catching mechanic
+@client.command()
+async def catch(ctx, arg):
+    global pkmnName
+
+    # Check is the input matches the Pokemon name
+    if (pkmnName. title() == arg.title()):
+        await ctx.send('Congratulations! You caught a {}!'.format(pkmnName))
+        print('Caught')
+        pkmnName = ''                           # Reset the global variable
+
+# Pokedex command
+@client.command()
+async def pokedex(ctx, arg):
+    data = await database.dex_db(arg)
+    print(data)
+    await embed.dex_embed(ctx, data)
+    
+
+# Bot token
+client.run('token')
